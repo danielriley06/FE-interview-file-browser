@@ -19,7 +19,8 @@ import SubdirectoryArrowRightIcon from "@material-ui/icons/SubdirectoryArrowRigh
 
 import { useListEntriesQuery } from "./generated-api";
 import { useReactiveVar } from "@apollo/client";
-import { directoryFilterVar } from "./graphql/cache";
+import { directoryFilterVar, sendFilterEvent } from "./graphql/cache";
+import DirectoryListFilters from "./components/DirectoryListFilters";
 
 const useStyles = makeStyles({
   table: {
@@ -29,7 +30,6 @@ const useStyles = makeStyles({
 
 function DataGrid() {
   const classes = useStyles();
-  const [sizeGt, setSizeGt] = React.useState(200);
   const [page, setPage] = React.useState(1);
   const [currentPath, setCurrentPath] = React.useState("/");
   const [history, updateHistory] = React.useState<
@@ -48,6 +48,9 @@ function DataGrid() {
       where: currentDirectoryFilters,
     },
   });
+
+  const currentNameFilter = currentDirectoryFilters.name_contains ?? "";
+  const currentTypeFilter = currentDirectoryFilters.type_eq ?? "";
 
   React.useEffect(() => {
     setCurrentPath(history[history.length - 1].path);
@@ -87,49 +90,15 @@ function DataGrid() {
     setPage(newPage + 1);
   };
 
-  const handleDelete = () => {
-    setSizeGt(0);
-  };
-
   return (
     <Box display="flex" height="100%">
       <Box flexGrow={1}>
         <Paper>
-          <Toolbar>
-            <Box
-              display="flex"
-              alignItems="center"
-              justifyContent="space-between"
-              width="100%"
-            >
-              <Typography variant="h6">File Browser</Typography>
-              <Box>
-                <Chip
-                  color="primary"
-                  onDelete={handleDelete}
-                  label={
-                    <Box>
-                      <strong>File Size &gt;</strong>
-                      <input
-                        onChange={(e) =>
-                          setSizeGt(Number(e.currentTarget.value))
-                        }
-                        type="number"
-                        value={sizeGt}
-                        style={{
-                          marginLeft: 8,
-                          background: "transparent",
-                          color: "white",
-                          border: "none",
-                          width: 80,
-                        }}
-                      />
-                    </Box>
-                  }
-                />
-              </Box>
-            </Box>
-          </Toolbar>
+          <DirectoryListFilters
+            currentNameFilter={currentNameFilter}
+            currentTypeFilter={currentTypeFilter}
+            sendFilterEvent={sendFilterEvent}
+          />
           <TableContainer>
             <Table
               className={classes.table}
